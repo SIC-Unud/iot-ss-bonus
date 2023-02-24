@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DHT11 Sensor Monitoring</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="row justify-content-center align-items-center vh-100">
+        <div class="col-md-8">
+            <canvas id="myChart"></canvas>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <script>
+        const getData = () => {
+            const response = fetch('/get')
+                .then((response) => {
+                    if(response.ok) {
+                        return response.json();
+                    } else {
+                        throw new Error('Response no OK!')
+                    }
+                })
+                .then((response) => response)
+                .catch((error) => {
+                    throw error
+                });
+
+            return response;
+        }
+    </script>
+
+    <script>
+        const display = async () => {
+            const sensorData = await getData();
+
+            const temperatures = sensorData.map((sensor) => sensor.temp);
+            const humidities = sensorData.map((sensor) => sensor.humid);
+            const times = sensorData.map((sensor) => sensor.time);
+
+            const data = {
+                labels: times,
+                datasets: [
+                    {
+                        label: 'Temperature',
+                        // yAxisID: 'A',
+                        data: temperatures,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointRadius: 4,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Humidity',
+                        // yAxisID: 'B',
+                        data: humidities,
+                        backgroundColor: 'rgba(34, 219, 132, 0.6)',
+                        borderColor: 'rgb(34, 219, 132)',
+                        pointRadius: 4,
+                        pointHoverRadius: 8
+                    }
+                ]
+            }
+
+            const config = {
+                type: 'line',
+                data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'DHT11 Temperature and Humidity Monitoring',
+                            font: {
+                                size: 20
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Monitoring Time'
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Monitoring Values'
+                            }
+                        }
+                        // A: {
+                        //     position: 'left',
+                        //     title: {
+                        //         text: 'Temperature'
+                        //     }
+                        // },
+                        // B: {
+                        //     position: 'right',
+                        //     title: {
+                        //         text: 'Humidity'
+                        //     }
+                        // }
+                    },
+                    stacked: false
+                }
+            }
+
+            const ctx = document.getElementById('myChart');
+            new Chart(ctx, config);
+        }
+    </script>
+
+    <script>
+        display();
+    </script>
+
+  </body>
+</html>
